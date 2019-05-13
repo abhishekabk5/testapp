@@ -35,8 +35,8 @@ class CameraFragment : Fragment() {
                 val compressedFile = Compressor(context).compressToFile(imageFile)
                 imageFile.writeBytes(compressedFile.readBytes())
                 Log.i("buttonCapture", "fileCompressed")
-                findNavController().navigate(CameraFragmentDirections
-                    .actionCameraFragmentToVisitorFragment(imageFile.absolutePath))
+//                findNavController().navigate(CameraFragmentDirections
+//                    .actionCameraFragmentToVisitorFragment(imageFile.absolutePath))
             }
         }
 
