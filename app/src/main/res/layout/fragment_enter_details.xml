@@ -1,0 +1,44 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout">
+
+    <!-- Start of the visible fragment layout using ConstraintLayout -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".EnterDetailsFragment">
+
+        <!-- Simplest way of displaying scrollable text and data. There is a
+             better and more efficient way to do this, and you will learn about
+             RecyclerView in a later lesson. -->
+
+
+        <EditText
+            android:id="@+id/editPhoneNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
+            android:ems="10"
+            android:hint="@string/phone_number_text"
+            android:inputType="phone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/buttonNext"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonNext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/button_next"
+            app:layout_constraintBaseline_toBaselineOf="@+id/editPhoneNumber"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/editPhoneNumber" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

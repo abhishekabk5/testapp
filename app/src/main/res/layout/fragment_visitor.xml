@@ -1,0 +1,85 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".visitorFragment.VisitorFragment">
+
+        <ImageView
+            android:id="@+id/imageVisitor"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="@string/image_visitor"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/editPhoneNumber"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_height="wrap_content"
+            tools:layout_width="0dp" />
+
+        <EditText
+            android:id="@+id/editPhoneNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:ems="10"
+            android:hint="@string/phone_number_text"
+            android:inputType="phone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/buttonNext"
+            app:layout_constraintStart_toEndOf="@+id/buttonNext"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.78" />
+
+        <Button
+            android:id="@+id/buttonNext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_next"
+            app:layout_constraintBaseline_toBaselineOf="@+id/editPhoneNumber"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/editPhoneNumber" />
+
+        <EditText
+            android:id="@+id/editOTP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:ems="4"
+            android:hint="@string/edit_OTP"
+            android:inputType="numberPassword"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/editPhoneNumber"
+            app:layout_constraintStart_toStartOf="@+id/editPhoneNumber"
+            app:layout_constraintTop_toBottomOf="@+id/editPhoneNumber"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <Button
+            android:id="@+id/buttonCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/button_check"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/buttonNext"
+            app:layout_constraintStart_toEndOf="@+id/editOTP"
+            app:layout_constraintStart_toStartOf="@+id/buttonNext"
+            app:layout_constraintTop_toBottomOf="@+id/buttonNext"
+            app:layout_constraintVertical_bias="0.0" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/startFragment">
+    <fragment
+        android:id="@+id/visitorFragment"
+        android:name="com.arlak.testapp.visitorFragment.VisitorFragment"
+        android:label="VisitorFragment"
+        tools:layout="@layout/fragment_visitor">
+        <argument android:name="imageFilePath" />
+    </fragment>
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.arlak.testapp.StartFragment"
+        android:label="StartFragment"
+        tools:layout="@layout/fragment_start">
+        <action
+            android:id="@+id/action_startFragment_to_visitorFragment"
+            app:destination="@id/visitorFragment" />
+    </fragment>
+</navigation>
