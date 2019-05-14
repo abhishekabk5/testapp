@@ -26,18 +26,37 @@ import java.util.concurrent.TimeUnit
 
 class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel() {
 
+    private val _showSnackbar = MutableLiveData<Boolean>()
+    val showSnackbar: LiveData<Boolean>
+        get() = _showSnackbar
+
+    private var _snackbarMsg: String = ""
+    val snackbarMsg: String
+        get() = _snackbarMsg
+
+    private var _snackbarActionText = ""
+    val snackActionText: String
+        get() = _snackbarActionText
+
+    private var _snackbarAction: (() -> Unit)? = null
+    val snackbarAction: (() -> Unit)?
+        get() = _snackbarAction
+
     private var storedVerificationId: String? = null
     private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
 
-    val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+    private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-            Log.d(TAG, "onVerificationCompleted:$credential")
+            _snackbarMsg = "Verification Completed"
+            _showSnackbar.value = true
+
             signInWithPhoneAuthCredential(credential)
         }
 
         override fun onVerificationFailed(e: FirebaseException) {
-            Log.w(TAG, "onVerificationFailed", e)
+            _snackbarMsg = "Verification Failed: $e"
+            _showSnackbar.value = true
 
             if (e is FirebaseAuthInvalidCredentialsException) {
                 // Invalid request
@@ -95,7 +114,15 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
 
     private fun addVisitor() {
         val visitor = Visitor(phoneNumber, photoDownloadUrl)
-        visitorsRef.child("Vis-$phoneNumber").setValue(visitor)
+        visitorsRef.push().setValue(visitor)
+
+        _snackbarMsg = "New Visitor Saved!"
+        _showSnackbar.value = true
+    }
+
+    private fun addSuspiciousUser() {
+        val visitor = Visitor(phoneNumber, photoDownloadUrl)
+        suspiciousUsersRef.push().setValue(visitor)
     }
 
     fun onNext(phoneNumber: String) {
@@ -110,10 +137,10 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (singleSnapshot in dataSnapshot.children) {
                     if(singleSnapshot.exists()) {
+                        val key = singleSnapshot.key
                         val visitor = singleSnapshot.getValue(Visitor::class.java)
                         visitor?.let {
-                            visitorsRef.child("Vis-$phoneNumber").child("visitCount")
-                                .setValue(visitor.visitCount + 1)
+                            incrementVisitCount(key!!, visitor.visitCount)
                         }
                     }
                     else {
@@ -128,6 +155,15 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
                 // ...
             }
         })
+    }
+
+    private fun incrementVisitCount(visitorKey: String, visitCount: Int) {
+        val visRef = visitorsRef.child(visitorKey)
+        val newCount = visitCount + 1
+        visRef.child("visitCount").setValue(newCount)
+
+        _snackbarMsg = "welcome back for $newCount time"
+        _showSnackbar.value = true
     }
 
     private fun authenticateNewVisitor() {
@@ -147,14 +183,14 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
                 } else {
                     Log.w(TAG, "signInWithCredential:failure", task.exception)
                     if (task.exception is FirebaseAuthInvalidCredentialsException) {
-                        // The verification code entered was invalid
+                        addSuspiciousUser()
                     }
                 }
             })
     }
 
     private fun uploadCompressedPhoto() {
-        var file = Uri.fromFile(File(compressedImageFilePath))
+        val file = Uri.fromFile(File(compressedImageFilePath))
 
         val uploadFileRef = storageRef.child(file.lastPathSegment!!)
         val metadata = StorageMetadata.Builder().setContentType("image/jpg").build()
@@ -171,8 +207,18 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
                 if(task.isSuccessful) {
                     photoDownloadUrl = task.result!!
                 } else {
-                    // Handle Errors.
+                    _snackbarMsg = "Upload failed."
+                    _snackbarActionText = "Try Again?"
+                    _snackbarAction = ::uploadCompressedPhoto
+                    _showSnackbar.value = true
                 }
             }
+    }
+
+    fun doneShowingSnackbar() {
+        _showSnackbar.value = false
+        _snackbarMsg = ""
+        _snackbarActionText = ""
+        _snackbarAction = null
     }
 }
