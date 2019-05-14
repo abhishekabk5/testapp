@@ -2,28 +2,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <ScrollView
+        android:id="@+id/rootScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".visitorFragment.VisitorFragment">
+        tools:context=".visitorFragment.VisitorFragment"
+        tools:ignore="ScrollViewSize">
 
         <ImageView
             android:id="@+id/imageVisitor"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:contentDescription="@string/image_visitor"
-            android:visibility="gone"
+            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintBottom_toTopOf="@+id/editPhoneNumber"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:layout_height="wrap_content"
-            tools:layout_width="0dp" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
             android:id="@+id/editPhoneNumber"
@@ -35,12 +37,12 @@
             android:ems="10"
             android:hint="@string/phone_number_text"
             android:inputType="phone"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/editOTP"
             app:layout_constraintEnd_toStartOf="@+id/buttonNext"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/buttonNext"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.78" />
+            app:layout_constraintTop_toBottomOf="@+id/imageVisitor" />
 
         <Button
             android:id="@+id/buttonNext"
@@ -55,17 +57,14 @@
             android:id="@+id/editOTP"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
             android:ems="4"
             android:hint="@string/edit_OTP"
             android:inputType="numberPassword"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/editPhoneNumber"
             app:layout_constraintStart_toStartOf="@+id/editPhoneNumber"
-            app:layout_constraintTop_toBottomOf="@+id/editPhoneNumber"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/editPhoneNumber" />
 
         <Button
             android:id="@+id/buttonCheck"
@@ -77,9 +76,12 @@
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/buttonNext"
-            app:layout_constraintStart_toEndOf="@+id/editOTP"
-            app:layout_constraintStart_toStartOf="@+id/buttonNext"
-            app:layout_constraintTop_toBottomOf="@+id/buttonNext"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/buttonNext" />
+
+
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
 </layout>

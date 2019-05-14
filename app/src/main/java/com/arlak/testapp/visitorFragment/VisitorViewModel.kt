@@ -6,12 +6,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.tasks.Continuation
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.TaskExecutors
+import com.google.android.gms.tasks.*
 import com.google.firebase.FirebaseException
-import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
@@ -20,11 +16,16 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.UploadTask
+import kotlinx.coroutines.*
 import java.io.File
 import java.util.concurrent.TimeUnit
 
 
 class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel() {
+
+    private val viewModelJob = Job()
+
+    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     private val _showSnackbar = MutableLiveData<Boolean>()
     val showSnackbar: LiveData<Boolean>
@@ -42,6 +43,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     val snackbarAction: (() -> Unit)?
         get() = _snackbarAction
 
+    private var verificationIdStored = false
     private lateinit var storedVerificationId: String
     private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
 
@@ -49,27 +51,14 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
 
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
             Log.i("Authentication", "Verification completed.")
-            _snackbarMsg = "Verification Completed"
-            _showSnackbar.value = true
-
             signInWithPhoneAuthCredential(credential)
         }
 
         override fun onVerificationFailed(e: FirebaseException) {
             Log.i("Authentication", "Verification failed: $e")
+
             _snackbarMsg = "Verification Failed: $e"
             _showSnackbar.value = true
-
-            if (e is FirebaseAuthInvalidCredentialsException) {
-                // Invalid request
-                // ...
-            } else if (e is FirebaseTooManyRequestsException) {
-                // The SMS quota for the project has been exceeded
-                // ...
-            }
-
-            // Show a message and update the UI
-            // ...
         }
 
         override fun onCodeSent(
@@ -79,14 +68,14 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
             // The SMS verification code has been sent to the provided phone number, we
             // now need to ask the user to enter the code and then construct a credential
             // by combining the code with a verification ID.
-            Log.i("Authentication", "Code Sent.")
             Log.d(TAG, "onCodeSent:" + verificationId!!)
 
             // Save verification ID and resending token so we can use them later
             storedVerificationId = verificationId
             resendToken = token
-
-            // ...
+            verificationIdStored = true
+            if(checkClicked)
+                verifyOTP()
         }
     }
 
@@ -94,43 +83,35 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     val authenticationStarted: LiveData<Boolean>
         get() = _authenticationStarted
 
+    private val _navigateToStart = MutableLiveData<Boolean>()
+    val navigateToStart: LiveData<Boolean>
+        get() = _navigateToStart
+
     private var database = FirebaseDatabase.getInstance().reference
     private var visitorsRef: DatabaseReference
     private var suspiciousUsersRef: DatabaseReference
 
-    private lateinit var phoneNumber: String
-//    private lateinit var photoDownloadUrl: Uri
+    private var checkClicked = false
+
+    private var phoneNumber = ""
+    private lateinit var photoDownloadUrl: String
 
     private var auth = FirebaseAuth.getInstance()
+    private var codeOTP = ""
 
     private var storageRef = FirebaseStorage.getInstance().reference.child("images")
+    private lateinit var urlTask: Task<Uri>
 
     init {
         visitorsRef = database.child("visitors")
         suspiciousUsersRef = database.child("suspicious_users")
     }
 
-    fun onCheck(code: String) {
-        val credential = PhoneAuthProvider.getCredential(storedVerificationId!!, code)
-        signInWithPhoneAuthCredential(credential)
-    }
-
-    private fun addVisitor() {
-        val visitor = Visitor(phoneNumber, photoDownloadUrl)
-        visitorsRef.push().setValue(visitor)
-
-        _snackbarMsg = "New Visitor Saved!"
-        _showSnackbar.value = true
-    }
-
-    private fun addSuspiciousUser() {
-        val visitor = Visitor(phoneNumber, photoDownloadUrl)
-        suspiciousUsersRef.push().setValue(visitor)
-    }
-
     fun onNext(phoneNumber: String) {
-        this.phoneNumber = phoneNumber
-        checkPhoneNumber()
+        if(this.phoneNumber != phoneNumber) {
+            this.phoneNumber = phoneNumber
+            checkPhoneNumber()
+        }
     }
 
     private fun checkPhoneNumber() {
@@ -138,8 +119,6 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
         phoneQuery.addListenerForSingleValueEvent(object : ValueEventListener {
 
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                Log.i("checkPhoneNumber", "onDataChanged called, dataSnapshot exists: ${dataSnapshot.exists()}")
-
                 if(dataSnapshot.exists()) {
                     for (singleSnapshot in dataSnapshot.children) {
                         val key = singleSnapshot.key
@@ -155,9 +134,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                // Getting Post failed, log a message
                 Log.w(TAG, "loadPost:onCancelled", databaseError.toException())
-                // ...
             }
         })
     }
@@ -169,31 +146,15 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
 
         _snackbarMsg = "welcome back for $newCount time"
         _showSnackbar.value = true
+        _navigateToStart.value = true
     }
 
     private fun authenticateNewVisitor() {
-        Log.i("New User", "Authentication started.")
         PhoneAuthProvider.getInstance().verifyPhoneNumber("+91$phoneNumber", 30, TimeUnit.SECONDS,
             TaskExecutors.MAIN_THREAD, callbacks)
         _authenticationStarted.value = true
 
         uploadCompressedPhoto()
-    }
-
-    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
-        Log.i("New User", "signIn started.")
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(TaskExecutors.MAIN_THREAD, OnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "signInWithCredential:success")
-                    addVisitor()
-                } else {
-                    Log.w(TAG, "signInWithCredential:failure", task.exception)
-                    if (task.exception is FirebaseAuthInvalidCredentialsException) {
-                        addSuspiciousUser()
-                    }
-                }
-            })
     }
 
     private fun uploadCompressedPhoto() {
@@ -202,7 +163,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
         val uploadFileRef = storageRef.child(file.lastPathSegment!!)
         val metadata = StorageMetadata.Builder().setContentType("image/jpg").build()
 
-        val urlTask = uploadFileRef.putFile(file, metadata)
+        urlTask = uploadFileRef.putFile(file, metadata)
             .continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
                 if (!task.isSuccessful) {
                     task.exception?.let {
@@ -212,7 +173,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
                 return@Continuation uploadFileRef.downloadUrl
             }).addOnCompleteListener { task ->
                 if(task.isSuccessful) {
-                    photoDownloadUrl = task.result!!
+                    photoDownloadUrl = task.result!!.toString()
                 } else {
                     _snackbarMsg = "Upload failed."
                     _snackbarActionText = "Try Again?"
@@ -222,10 +183,74 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
             }
     }
 
+    fun onCheck(code: String) {
+        if(!checkClicked) {
+            checkClicked = true
+            codeOTP = code
+            if(verificationIdStored)
+                verifyOTP()
+        }
+    }
+
+    private fun verifyOTP() {
+        val credential = PhoneAuthProvider.getCredential(storedVerificationId, codeOTP)
+        signInWithPhoneAuthCredential(credential)
+    }
+
+    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
+        Log.i("New User", "signIn started.")
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(TaskExecutors.MAIN_THREAD, OnCompleteListener { task ->
+                uiScope.launch {
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "signInWithCredential:success")
+                        addVisitor()
+
+                        _snackbarMsg = "New Visitor Saved!"
+                        _showSnackbar.value = true
+                    } else {
+                        Log.w(TAG, "signInWithCredential:failure", task.exception)
+                        if (task.exception is FirebaseAuthInvalidCredentialsException) {
+                            addSuspiciousUser()
+                            _snackbarMsg = "InvalidCredentials: Check OTP."
+                            _showSnackbar.value = true
+                        }
+                    }
+                }
+            })
+    }
+
+    private suspend fun addVisitor() {
+        withContext(Dispatchers.IO) {
+            val visitor = getVisitor()
+            visitorsRef.push().setValue(visitor)
+            _navigateToStart.postValue(true)
+        }
+    }
+
+    private suspend fun addSuspiciousUser() {
+        withContext(Dispatchers.IO) {
+            val visitor = getVisitor()
+            suspiciousUsersRef.push().setValue(visitor)
+            _navigateToStart.postValue(true)
+        }
+    }
+
+    private suspend fun getVisitor() : Visitor {
+        return withContext(Dispatchers.IO) {
+            Tasks.await(urlTask)
+            return@withContext Visitor(phoneNumber, photoDownloadUrl)
+        }
+    }
+
     fun doneShowingSnackbar() {
         _showSnackbar.value = false
         _snackbarMsg = ""
         _snackbarActionText = ""
         _snackbarAction = null
+    }
+
+    fun doneNavigating() {
+        _navigateToStart.value = false
     }
 }

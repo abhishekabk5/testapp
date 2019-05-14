@@ -22,8 +22,6 @@ class StartFragment : Fragment() {
 
         binding.buttonStart.setOnClickListener {
             findNavController().navigate(StartFragmentDirections.actionStartFragmentToCameraFragment())
-//            findNavController().navigate(StartFragmentDirections.actionStartFragmentToVisitorFragment(
-//                "https://firebasestorage.googleapis.com/v0/b/testapp-rc.appspot.com/o/738278.jpg?alt=media&token=96b663ae-be32-4a17-ad1c-dd3c0d33df7c"))
         }
 
         return binding.root
