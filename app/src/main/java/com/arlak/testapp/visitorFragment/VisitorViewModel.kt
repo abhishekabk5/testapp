@@ -42,12 +42,13 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     val snackbarAction: (() -> Unit)?
         get() = _snackbarAction
 
-    private var storedVerificationId: String? = null
+    private lateinit var storedVerificationId: String
     private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
 
     private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+            Log.i("Authentication", "Verification completed.")
             _snackbarMsg = "Verification Completed"
             _showSnackbar.value = true
 
@@ -55,6 +56,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
         }
 
         override fun onVerificationFailed(e: FirebaseException) {
+            Log.i("Authentication", "Verification failed: $e")
             _snackbarMsg = "Verification Failed: $e"
             _showSnackbar.value = true
 
@@ -77,6 +79,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
             // The SMS verification code has been sent to the provided phone number, we
             // now need to ask the user to enter the code and then construct a credential
             // by combining the code with a verification ID.
+            Log.i("Authentication", "Code Sent.")
             Log.d(TAG, "onCodeSent:" + verificationId!!)
 
             // Save verification ID and resending token so we can use them later
@@ -96,7 +99,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     private var suspiciousUsersRef: DatabaseReference
 
     private lateinit var phoneNumber: String
-    private lateinit var photoDownloadUrl: Uri
+//    private lateinit var photoDownloadUrl: Uri
 
     private var auth = FirebaseAuth.getInstance()
 
@@ -135,17 +138,19 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
         phoneQuery.addListenerForSingleValueEvent(object : ValueEventListener {
 
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                for (singleSnapshot in dataSnapshot.children) {
-                    if(singleSnapshot.exists()) {
+                Log.i("checkPhoneNumber", "onDataChanged called, dataSnapshot exists: ${dataSnapshot.exists()}")
+
+                if(dataSnapshot.exists()) {
+                    for (singleSnapshot in dataSnapshot.children) {
                         val key = singleSnapshot.key
                         val visitor = singleSnapshot.getValue(Visitor::class.java)
                         visitor?.let {
                             incrementVisitCount(key!!, visitor.visitCount)
                         }
                     }
-                    else {
-                        authenticateNewVisitor()
-                    }
+                }
+                else {
+                    authenticateNewVisitor()
                 }
             }
 
@@ -167,7 +172,8 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     }
 
     private fun authenticateNewVisitor() {
-        PhoneAuthProvider.getInstance().verifyPhoneNumber(phoneNumber, 30, TimeUnit.SECONDS,
+        Log.i("New User", "Authentication started.")
+        PhoneAuthProvider.getInstance().verifyPhoneNumber("+91$phoneNumber", 30, TimeUnit.SECONDS,
             TaskExecutors.MAIN_THREAD, callbacks)
         _authenticationStarted.value = true
 
@@ -175,6 +181,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     }
 
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
+        Log.i("New User", "signIn started.")
         auth.signInWithCredential(credential)
             .addOnCompleteListener(TaskExecutors.MAIN_THREAD, OnCompleteListener { task ->
                 if (task.isSuccessful) {

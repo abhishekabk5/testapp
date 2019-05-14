@@ -2,19 +2,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Start of the visible fragment layout using ConstraintLayout -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".CameraFragment">
-
+        tools:context=".cameraFragment.CameraFragment">
 
 
         <com.camerakit.CameraKitView
             android:id="@+id/camera"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:adjustViewBounds="true"
             android:keepScreenOn="true"
@@ -24,8 +24,11 @@
             app:camera_focus="continuous"
             app:camera_permissions="camera"
             app:layout_constraintBottom_toTopOf="@+id/buttonCapture"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:layout_height="0dp" />
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <Button
             android:id="@+id/buttonCapture"
@@ -37,6 +40,8 @@
             android:text="@string/button_capture"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/camera" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

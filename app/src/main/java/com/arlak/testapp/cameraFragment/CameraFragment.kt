@@ -1,7 +1,5 @@
-package com.arlak.testapp
+package com.arlak.testapp.cameraFragment
 
-import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -9,11 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
+import com.arlak.testapp.R
 import com.arlak.testapp.databinding.FragmentCameraBinding
 import com.camerakit.CameraKitView
-import id.zelory.compressor.Compressor
-import java.io.File
 
 
 class CameraFragment : Fragment() {
@@ -24,21 +23,26 @@ class CameraFragment : Fragment() {
         val binding: FragmentCameraBinding = DataBindingUtil
             .inflate(inflater, R.layout.fragment_camera, container, false)
 
+        val application = requireNotNull(activity).application
+        val viewModelFactory = CameraViewModelFactory(application)
+        val cameraViewModel = ViewModelProviders.of(this, viewModelFactory)
+            .get(CameraViewModel::class.java)
+
         cameraKit = binding.camera
         binding.buttonCapture.setOnClickListener {
             Log.i("buttonCapture", "buttonClicked")
             cameraKit.captureImage{_, capturedImage ->
-                Log.i("buttonCapture", "callback")
-                val imageFile = File.createTempFile("temp", "jpg")
-                imageFile.writeBytes(capturedImage)
-                Log.i("buttonCapture", "fileCreated")
-                val compressedFile = Compressor(context).compressToFile(imageFile)
-                imageFile.writeBytes(compressedFile.readBytes())
-                Log.i("buttonCapture", "fileCompressed")
-//                findNavController().navigate(CameraFragmentDirections
-//                    .actionCameraFragmentToVisitorFragment(imageFile.absolutePath))
+                cameraViewModel.saveAndCompressImage(capturedImage)
             }
         }
+
+        cameraViewModel.navigateToNextFragment.observe(this, Observer { navigate ->
+            if(navigate) {
+                findNavController().navigate(CameraFragmentDirections
+                    .actionCameraFragmentToVisitorFragment(cameraViewModel.filePath))
+                cameraViewModel.doneNavigating()
+            }
+        })
 
         return binding.root
     }

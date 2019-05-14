@@ -39,7 +39,7 @@ class VisitorFragment : Fragment() {
         })
 
         binding.buttonNext.setOnClickListener {
-            val phoneNumber = binding.editPhoneNumber.text.toString()
+            val phoneNumber = binding.editPhoneNumber.text.toString().trim()
             visitorViewModel.onNext(phoneNumber)
         }
 
@@ -51,7 +51,7 @@ class VisitorFragment : Fragment() {
         })
 
         binding.buttonCheck.setOnClickListener {
-            val otp = binding.editOTP.text.toString()
+            val otp = binding.editOTP.text.toString().trim()
             visitorViewModel.onCheck(otp)
         }
 

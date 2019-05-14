@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/startFragment">
+    app:startDestination="@id/cameraFragment">
     <fragment
         android:id="@+id/visitorFragment"
         android:name="com.arlak.testapp.visitorFragment.VisitorFragment"
@@ -17,7 +17,16 @@
         android:label="StartFragment"
         tools:layout="@layout/fragment_start">
         <action
-            android:id="@+id/action_startFragment_to_visitorFragment"
+            android:id="@+id/action_startFragment_to_cameraFragment"
+            app:destination="@id/cameraFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/cameraFragment"
+        android:name="com.arlak.testapp.cameraFragment.CameraFragment"
+        android:label="CameraFragment"
+        tools:layout="@layout/fragment_camera" >
+        <action
+            android:id="@+id/action_cameraFragment_to_visitorFragment"
             app:destination="@id/visitorFragment" />
     </fragment>
 </navigation>
