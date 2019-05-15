@@ -1,8 +1,6 @@
 package com.arlak.testapp.visitorFragment
 
-import android.content.ContentValues.TAG
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -50,12 +48,12 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-            Log.i("Authentication", "Verification completed.")
+//            Log.i("Authentication", "Verification completed.")
             signInWithPhoneAuthCredential(credential)
         }
 
         override fun onVerificationFailed(e: FirebaseException) {
-            Log.i("Authentication", "Verification failed: $e")
+//            Log.i("Authentication", "Verification failed: $e")
 
             _snackbarMsg = "Verification Failed: $e"
             _showSnackbar.value = true
@@ -68,10 +66,10 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
             // The SMS verification code has been sent to the provided phone number, we
             // now need to ask the user to enter the code and then construct a credential
             // by combining the code with a verification ID.
-            Log.d(TAG, "onCodeSent:" + verificationId!!)
+//            Log.d(TAG, "onCodeSent:" + verificationId!!)
 
             // Save verification ID and resending token so we can use them later
-            storedVerificationId = verificationId
+            storedVerificationId = verificationId!!
             resendToken = token
             verificationIdStored = true
             if(checkClicked)
@@ -134,7 +132,7 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException())
+//                Log.w(TAG, "loadPost:onCancelled", databaseError.toException())
             }
         })
     }
@@ -198,18 +196,18 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
     }
 
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
-        Log.i("New User", "signIn started.")
+//        Log.i("New User", "signIn started.")
         auth.signInWithCredential(credential)
             .addOnCompleteListener(TaskExecutors.MAIN_THREAD, OnCompleteListener { task ->
                 uiScope.launch {
                     if (task.isSuccessful) {
-                        Log.d(TAG, "signInWithCredential:success")
+//                        Log.d(TAG, "signInWithCredential:success")
                         addVisitor()
 
                         _snackbarMsg = "New Visitor Saved!"
                         _showSnackbar.value = true
                     } else {
-                        Log.w(TAG, "signInWithCredential:failure", task.exception)
+//                        Log.w(TAG, "signInWithCredential:failure", task.exception)
                         if (task.exception is FirebaseAuthInvalidCredentialsException) {
                             addSuspiciousUser()
                             _snackbarMsg = "InvalidCredentials: Check OTP."

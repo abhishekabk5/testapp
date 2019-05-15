@@ -32,7 +32,7 @@ class VisitorFragment : Fragment() {
         visitorViewModel.showSnackbar.observe(this, Observer {show ->
             visitorViewModel.run {
                 if(show) {
-                    var snackbar = Snackbar.make(binding.rootScrollView, snackbarMsg
+                    val snackbar = Snackbar.make(binding.rootScrollView, snackbarMsg
                         , Snackbar.LENGTH_LONG)
                     if(snackActionText != "") {
                         snackbar.setAction(snackActionText, View.OnClickListener { snackbarAction })

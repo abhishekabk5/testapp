@@ -12,15 +12,5 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            Log.i("checkSelfPermission", "Permission not granted.")
-        } else {
-            Log.i("checkSelfPermission", "Permission granted.")
-            // Permission has already been granted
-        }
-
     }
 }
