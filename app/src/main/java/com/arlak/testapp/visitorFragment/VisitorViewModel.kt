@@ -127,7 +127,9 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
                     }
                 }
                 else {
-                    authenticateNewVisitor()
+                    uiScope.launch {
+                        authenticateNewVisitor()
+                    }
                 }
             }
 
@@ -147,38 +149,48 @@ class VisitorViewModel(private val compressedImageFilePath: String) : ViewModel(
         _navigateToStart.value = true
     }
 
-    private fun authenticateNewVisitor() {
-        PhoneAuthProvider.getInstance().verifyPhoneNumber("+91$phoneNumber", 30, TimeUnit.SECONDS,
-            TaskExecutors.MAIN_THREAD, callbacks)
-        _authenticationStarted.value = true
+    private suspend fun authenticateNewVisitor() {
+        withContext(Dispatchers.IO) {
+            PhoneAuthProvider.getInstance().verifyPhoneNumber("+91$phoneNumber", 30, TimeUnit.SECONDS,
+                TaskExecutors.MAIN_THREAD, callbacks)
+            _authenticationStarted.postValue(true)
 
-        uploadCompressedPhoto()
+            uploadCompressedPhoto()
+        }
     }
 
-    private fun uploadCompressedPhoto() {
-        val file = Uri.fromFile(File(compressedImageFilePath))
+    private fun retryUpload() {
+        uiScope.launch {
+            uploadCompressedPhoto()
+        }
+    }
 
-        val uploadFileRef = storageRef.child(file.lastPathSegment!!)
-        val metadata = StorageMetadata.Builder().setContentType("image/jpg").build()
+    private suspend fun uploadCompressedPhoto() {
+        withContext(Dispatchers.IO) {
+            val file = Uri.fromFile(File(compressedImageFilePath))
 
-        urlTask = uploadFileRef.putFile(file, metadata)
-            .continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let {
-                        throw it
+            val uploadFileRef = storageRef.child(file.lastPathSegment!!)
+            val metadata = StorageMetadata.Builder().setContentType("image/jpg").build()
+
+            urlTask = uploadFileRef.putFile(file, metadata)
+                .continueWithTask(Continuation<UploadTask.TaskSnapshot, Task<Uri>> { task ->
+                    if (!task.isSuccessful) {
+                        task.exception?.let {
+                            throw it
+                        }
+                    }
+                    return@Continuation uploadFileRef.downloadUrl
+                }).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        photoDownloadUrl = task.result!!.toString()
+                    } else {
+                        _snackbarMsg = "Upload failed."
+                        _snackbarActionText = "Try Again?"
+                        _snackbarAction = ::retryUpload
+                        _showSnackbar.postValue(true)
                     }
                 }
-                return@Continuation uploadFileRef.downloadUrl
-            }).addOnCompleteListener { task ->
-                if(task.isSuccessful) {
-                    photoDownloadUrl = task.result!!.toString()
-                } else {
-                    _snackbarMsg = "Upload failed."
-                    _snackbarActionText = "Try Again?"
-                    _snackbarAction = ::uploadCompressedPhoto
-                    _showSnackbar.value = true
-                }
-            }
+        }
     }
 
     fun onCheck(code: String) {

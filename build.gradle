@@ -30,6 +30,25 @@ allprojects {
     }
 }
 
+subprojects { project ->
+    group = 'com.camerakit'
+    version = '1.0.0-beta3.11'
+
+    repositories {
+        google()
+        jcenter()
+    }
+
+    ext {
+        versions = [
+                minSdk     : 15,
+                targetSdk  : 28,
+                compileSdk : 28,
+        ]
+    }
+}
+
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

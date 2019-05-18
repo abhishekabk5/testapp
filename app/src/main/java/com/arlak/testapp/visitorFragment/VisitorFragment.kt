@@ -32,10 +32,9 @@ class VisitorFragment : Fragment() {
         visitorViewModel.showSnackbar.observe(this, Observer {show ->
             visitorViewModel.run {
                 if(show) {
-                    val snackbar = Snackbar.make(binding.rootScrollView, snackbarMsg
-                        , Snackbar.LENGTH_LONG)
+                    val snackbar = Snackbar.make(binding.rootScrollView, snackbarMsg, Snackbar.LENGTH_LONG)
                     if(snackActionText != "") {
-                        snackbar.setAction(snackActionText, View.OnClickListener { snackbarAction })
+                        snackbar.setAction(snackActionText) { snackbarAction?.invoke() }
                     }
                     snackbar.show()
                     doneShowingSnackbar()
@@ -45,7 +44,10 @@ class VisitorFragment : Fragment() {
 
         binding.buttonNext.setOnClickListener {
             val phoneNumber = binding.editPhoneNumber.text.toString().trim()
-            visitorViewModel.onNext(phoneNumber)
+            if(phoneNumber.length == 10)
+                visitorViewModel.onNext(phoneNumber)
+            else
+                Snackbar.make(binding.rootScrollView, "Enter a valid 10-digit phone number.", Snackbar.LENGTH_LONG).show()
         }
 
         visitorViewModel.authenticationStarted.observe(this, Observer {started ->
@@ -57,9 +59,12 @@ class VisitorFragment : Fragment() {
 
         binding.buttonCheck.setOnClickListener {
             val otp = binding.editOTP.text.toString().trim()
-            visitorViewModel.onCheck(otp)
-            binding.editOTP.visibility = View.GONE
-            binding.buttonCheck.visibility = View.GONE
+            if(otp.length == 6) {
+                visitorViewModel.onCheck(otp)
+                binding.editOTP.visibility = View.GONE
+                binding.buttonCheck.visibility = View.GONE
+            } else
+                Snackbar.make(binding.rootScrollView, "Enter a valid 6-digit OTP.", Snackbar.LENGTH_LONG).show()
         }
 
         visitorViewModel.navigateToStart.observe(this, Observer { navigate ->

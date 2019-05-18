@@ -19,21 +19,37 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
     val navigateToNextFragment: LiveData<Boolean>
         get() = _navigateToNextFragment
 
+    private val _captureClicked = MutableLiveData<Boolean>()
+    val captureClicked: LiveData<Boolean>
+        get() = _captureClicked
+
     private val viewModelJob = Job()
 
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
-    fun saveAndCompressImage(image: ByteArray) {
-        Log.i("buttonCapture", "callback")
+    init {
+        _navigateToNextFragment.value = false
+        _captureClicked.value = false
+    }
+
+    fun onCaptureClicked() {
+        if(!captureClicked.value!!)
+            _captureClicked.value = true
+    }
+
+    fun saveAndCompressImage(imageBytes: ByteArray) {
+//        Log.i("buttonCapture", "callback")
         uiScope.launch {
-            val imageFile = saveImageToFile(image)
-            Log.i("buttonCapture", "fileCreated: ${imageFile.absolutePath}")
+            val imageFile = saveImageToFile(imageBytes)
+//            Log.i("buttonCapture", "fileCreated: ${imageFile.absolutePath}")
             val compressedFile = compressToFile(imageFile)
-            Log.i("buttonCapture", "fileCompressed: ${compressedFile.absolutePath}")
-            imageFile.writeBytes(compressedFile.readBytes())
+//            Log.i("buttonCapture", "fileCompressed: ${compressedFile.absolutePath}")
+
+            imageFile.deleteOnExit()
             compressedFile.deleteOnExit()
 
-            _filePath = imageFile.absolutePath
+            _filePath = compressedFile.absolutePath
+            _captureClicked.value = false
             _navigateToNextFragment.value = true
         }
     }

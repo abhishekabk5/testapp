@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/cameraFragment">
+    app:startDestination="@id/startFragment">
     <fragment
         android:id="@+id/visitorFragment"
         android:name="com.arlak.testapp.visitorFragment.VisitorFragment"
@@ -17,7 +17,7 @@
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
-            app:popUpTo="@+id/startFragment"
+            app:popUpTo="@+id/cameraFragment"
             app:popUpToInclusive="true" />
     </fragment>
     <fragment
@@ -33,6 +33,9 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
             app:popUpTo="@+id/startFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_visitorFragment"
+            app:destination="@id/visitorFragment" />
     </fragment>
     <fragment
         android:id="@+id/cameraFragment"
@@ -46,6 +49,7 @@
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"
-            app:popUpTo="@+id/startFragment" />
+            app:popUpTo="@+id/cameraFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>

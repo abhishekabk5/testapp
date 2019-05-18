@@ -4,10 +4,12 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="phone_number_text">Enter Phone Number</string>
     <string name="button_next">Next</string>
-    <string name="button_capture">Capture</string>
+    <string name="button_capture">Capture Image</string>
     <string name="image_visitor">Visitor Photo</string>
     <string name="button_check">Authenticate</string>
     <string name="edit_OTP">OTP</string>
     <string name="button_start">Start</string>
     <string name="text_enter_OTP">Enter OTP</string>
+    <string name="button_flash">Toggle Flash</string>
+    <string name="button_facing">Toggle Facing</string>
 </resources>
